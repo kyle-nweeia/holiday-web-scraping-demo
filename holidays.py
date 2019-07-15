@@ -1,6 +1,6 @@
 from calendar import month_abbr
 from datetime import datetime
-from itertools import islice
+from itertools import chain
 from json import dumps
 
 from flask import Flask, request
@@ -39,8 +39,14 @@ def holidays(holidayType=None):
         type = line.split(',')[3],
         detail = line.split(',')[4][:-1].replace('\xa0', ''),
         )
-    def match(line): return holidayType.lower() in mapper(line)['type'].lower()
-    def matches(lines): return list(filter(match, lines))
+    def match(line):
+        if holidayType is None: return line
+        return holidayType.lower() in mapper(line)['type'].lower()
+    def matches(lines, results = []):
+        if len(results) == 10: return results
+        try: line = next(lines)
+        except StopIteration: return results
+        return matches(lines, results+list(filter(match, [line])))
     def month(date): return list(month_abbr).index(date[0]) # Get month number
     holidayType = request.args.get('holidayType')
     today = datetime.today().strftime('%b %d').split()
@@ -49,10 +55,7 @@ def holidays(holidayType=None):
         for line in csv:
             if month(date(line)) < month(today): continue
             if month(date(line))>month(today) or day(date(line))>day(today):
-                if holidayType:
-                    results = sum(matches([line]), matches(csv))[:10]
-                    return dumps([mapper(x) for x in results])
-                return dumps([mapper(x) for x in [line]+list(islice(csv,9))])
+                return dumps([mapper(x) for x in matches(chain([line], csv))])
 
 def main():
     fetch()
