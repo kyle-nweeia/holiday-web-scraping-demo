@@ -10,14 +10,14 @@ import requests
 app = Flask(__name__)
 
 def fetch():
-    with open('holidays.csv', 'w') as output:
-        def url(i):
-            next_year = str(int(datetime.today().strftime('%Y')) + 1)
-            return (
-                'https://www.timeanddate.com/holidays/us/',
-                f'https://www.timeanddate.com/holidays/us/{next_year}',
-                )[i]
+    def url(i):
+        next_year = str(int(datetime.today().strftime('%Y')) + 1)
+        return (
+            'https://www.timeanddate.com/holidays/us/',
+            f'https://www.timeanddate.com/holidays/us/{next_year}',
+            )[i]
 
+    with open('holidays.csv', 'w') as output:
         for i in range(2):
             page = requests.get(url(i))
             tree = html.fromstring(page.content)
