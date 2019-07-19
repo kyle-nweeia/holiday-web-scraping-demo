@@ -30,7 +30,7 @@ def fetch():
                 output.write(f'{line}\n')
 
 @app.route('/holidays')
-def holidays(holidayType=None):
+def holidays(holiday_type=None):
     def date(line): return line.split(',')[0].split() # Get month and day
     def day(date): return int(date[1]) # Get day from date
     def mapper(line): return dict(
@@ -40,15 +40,15 @@ def holidays(holidayType=None):
         detail = line.split(',')[4][:-1].replace('\xa0', ''),
         )
     def match(line):
-        if holidayType is None: return line
-        return holidayType.lower() in mapper(line)['type'].lower()
+        if holiday_type is None: return line
+        return holiday_type.lower() in mapper(line)['type'].lower()
     def matches(lines, results = []):
         if len(results) == 10: return results
         try: line = next(lines)
         except StopIteration: return results
         return matches(lines, results+list(filter(match, [line])))
     def month(date): return list(month_abbr).index(date[0]) # Get month number
-    holidayType = request.args.get('holidayType')
+    holiday_type = request.args.get('holidayType')
     today = datetime.today().strftime('%b %d').split()
 
     with open('holidays.csv', 'r') as csv:
